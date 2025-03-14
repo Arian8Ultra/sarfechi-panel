@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@/assets/Webfonts/style.css";
-import PanelSidebar from "@/components/sidebar/PanelSidebar";
+import PanelMenu from "@/components/panelMenu/PanelMenu";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 // const geistSans = Geist({
@@ -26,10 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='fa' dir='rtl'>
-      <body className={`antialiased ss01`}>
+      <body className={`antialiased ss01 relative`}>
         <SidebarProvider dir="rtl">
-          <div className='flex'>
-            <PanelSidebar />
+          <div className='flex md:flex-row flex-col'>
+            <PanelMenu />
             <div className='flex-[1]'>{children}</div>
           </div>
         </SidebarProvider>

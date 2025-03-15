@@ -32,7 +32,7 @@ const PanelMenu = () => {
           <div className='flex gap-2 justify-center items-center p-2'>
             <h2 className='font-medium text-2xl text-primary'>صرفه چی</h2>
           </div>
-          <SidebarTrigger className='absolute top-0 left-0 hidden md:flex' />
+          <SidebarTrigger className='absolute top-0 left-0 hidden md:flex cursor-pointer' />
           <Button
             className='absolute top-0 left-0 bg-purple-300 hover:text-secondary-foreground transition-all duration-200 cursor-pointer rounded-t-none rounded-l-none md:hidden'
             onClick={() => toggleSidebar()}
@@ -67,11 +67,11 @@ const PanelMenu = () => {
       </Sidebar>
 
       <div
-        className={`flex p-2 justify-center items-center h-fit bg-purple-300 rounded-lg shadow-md absolute top-2 right-2 z-50 ${
+        className={`flex justify-center items-center h-fit rounded-lg shadow-md absolute top-2 right-2 z-50 ${
           open ? "hidden" : isMobile ? "hidden" : "block"
         }`}
       >
-        <SidebarTrigger />
+        <SidebarTrigger className="hover:bg-purple-200 !p-5 bg-purple-300 cursor-pointer" />
       </div>
 
       <div

@@ -123,14 +123,32 @@ export interface FetchPendingCardToCardsResponse {
 }
 
 export interface FetchPendingCardToCardsDatum {
-  amount: number;
-  buyer_id: number;
-  buyer_type: string;
-  created_at: Date;
-  id: number;
-  purchasable_id: number;
+  amount:           number;
+  buyer_id:         number;
+  buyer_type:       string;
+  created_at:       Date;
+  id:               number;
+  payment:          Payment;
+  purchasable:      string;
+  purchasable_id:   number;
   purchasable_type: string;
-  status: number;
-  tracking_code: string;
-  updated_at: Date;
-}
+  status:           number;
+  tracking_code:    string;
+  updated_at:       Date;
+ }
+
+ export interface Payment {
+  amount:          number;
+  created_at:      Date;
+  id:              number;
+  order_id:        number;
+  paid_at:         null;
+  payment_gateway: null;
+  payment_method:  string;
+  receipt_photo:   string;
+  res_num:         string;
+  status:          number;
+  transaction_id:  string;
+  updated_at:      Date;
+ }
+ 

@@ -28,10 +28,11 @@ export async function POST(request: Request) {
     console.log(res);
     if (res.success) {
       cookie.set("access_token", res.data.access_token, {
-        expires: new Date(Date.now() + res.data.expires_in * 1000),
+        // expires_in is in seconds so
+        expires: new Date(new Date().getTime() + res.data.expires_in * 1000),
       });
       cookie.set("refresh_token", res.data.refresh_token, {
-        expires: new Date(Date.now() + res.data.expires_in * 1000),
+        expires: new Date(new Date().getTime() + res.data.expires_in * 1000),
       });
       return NextResponse.json(
         {

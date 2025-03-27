@@ -1,6 +1,7 @@
 import "@/assets/Webfonts/style.css";
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -25,7 +26,8 @@ export default function RootLayout({
   return (
     <html lang='fa' dir='rtl'>
       <body className={`antialiased ss01 relative`}>
-            <div className='flex-[1]'>{children}</div>
+        <div className='flex-[1]'>{children}</div>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: [
+      "test-api.sarfechi.com",
+      "test2-api.sarfechi.com",
+      "sarfechi.com",
+      "api.sarfechi.com",
+    ],
+  },
 };
 
 export default nextConfig;

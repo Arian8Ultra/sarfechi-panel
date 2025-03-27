@@ -1,10 +1,17 @@
+import { cookies } from "next/headers";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
-export default function LoginLayout({
+export default async function LoginLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const accessToken = (await cookies()).get("access_token");
+
+  if (accessToken && accessToken.value !== "undefined" && accessToken.value !== "null" && accessToken.value !== "") {
+    redirect("/");
+  }
   return (
     <section>
       <div className='h-screen w-full md:p-20 relative'>

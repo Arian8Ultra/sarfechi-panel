@@ -1,0 +1,456 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated"
+  previewFeatures = ["relationJoins"]
+}
+
+generator typescriptInterfaces {
+  provider = "prisma-generator-typescript-interfaces"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admins {
+  id              BigInt            @id @default(autoincrement())
+  first_name      String?           @db.VarChar(255)
+  last_name       String?           @db.VarChar(255)
+  gender          String?           @db.VarChar(255)
+  email           String?           @db.VarChar(255)
+  mobile_number   String            @db.VarChar(255)
+  password        String?           @db.VarChar(255)
+  birthdate       DateTime?         @db.Date
+  ssn             String?           @db.VarChar(10)
+  otp_secret      String?           @db.VarChar(255)
+  status          Int               @default(0) @db.SmallInt
+  is_verified     Boolean           @default(false)
+  deleted_at      DateTime?         @db.Timestamp(0)
+  created_at      DateTime?         @db.Timestamp(0)
+  updated_at      DateTime?         @db.Timestamp(0)
+  provider_agents provider_agents[]
+
+  @@unique([email, deleted_at], map: "admins_email_deleted_at_unique")
+  @@unique([mobile_number, deleted_at], map: "admins_mobile_number_deleted_at_unique")
+  @@unique([ssn, deleted_at], map: "admins_ssn_deleted_at_unique")
+}
+
+model cache {
+  key        String @id @db.VarChar(255)
+  value      String
+  expiration Int
+}
+
+model cache_locks {
+  key        String @id @db.VarChar(255)
+  owner      String @db.VarChar(255)
+  expiration Int
+}
+
+model customer_subscriptions {
+  id                   BigInt                @id @default(autoincrement())
+  customer_id          BigInt
+  subscription_plan_id BigInt
+  order_id             BigInt                @unique(map: "customer_subscriptions_order_id_unique")
+  start_date           DateTime              @db.Date
+  end_date             DateTime              @db.Date
+  status               Int                   @default(1) @db.SmallInt
+  created_at           DateTime?             @db.Timestamp(0)
+  updated_at           DateTime?             @db.Timestamp(0)
+  customers            customers             @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "customer_subscriptions_customer_id_foreign")
+  orders               orders                @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "customer_subscriptions_order_id_foreign")
+  subscription_plans   subscription_plans    @relation(fields: [subscription_plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "customer_subscriptions_subscription_plan_id_foreign")
+  subscription_usages  subscription_usages[]
+
+  @@unique([customer_id, subscription_plan_id, status], map: "customer_subscriptions_customer_id_subscription_plan_id_status_")
+}
+
+model customers {
+  id                     BigInt                   @id @default(autoincrement())
+  first_name             String?                  @db.VarChar(255)
+  last_name              String?                  @db.VarChar(255)
+  gender                 String?                  @db.VarChar(255)
+  email                  String?                  @db.VarChar(255)
+  mobile_number          String                   @db.VarChar(255)
+  password               String?                  @db.VarChar(255)
+  birthdate              DateTime?                @db.Date
+  ssn                    String?                  @db.VarChar(10)
+  otp_secret             String?                  @db.VarChar(255)
+  status                 Int                      @default(0) @db.SmallInt
+  is_verified            Boolean                  @default(false)
+  deleted_at             DateTime?                @db.Timestamp(0)
+  created_at             DateTime?                @db.Timestamp(0)
+  updated_at             DateTime?                @db.Timestamp(0)
+  customer_subscriptions customer_subscriptions[]
+  subscription_usages    subscription_usages[]
+
+  @@unique([email, deleted_at], map: "customers_email_deleted_at_unique")
+  @@unique([mobile_number, deleted_at], map: "customers_mobile_number_deleted_at_unique")
+  @@unique([ssn, deleted_at], map: "customers_ssn_deleted_at_unique")
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement())
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String
+  queue      String
+  payload    String
+  exception  String
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model job_batches {
+  id             String  @id @db.VarChar(255)
+  name           String  @db.VarChar(255)
+  total_jobs     Int
+  pending_jobs   Int
+  failed_jobs    Int
+  failed_job_ids String
+  options        String?
+  cancelled_at   Int?
+  created_at     Int
+  finished_at    Int?
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement())
+  queue        String @db.VarChar(255)
+  payload      String
+  attempts     Int    @db.SmallInt
+  reserved_at  Int?
+  available_at Int
+  created_at   Int
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement())
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model model_has_permissions {
+  permission_id BigInt
+  model_type    String      @db.VarChar(255)
+  model_id      BigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "model_has_permissions_permission_id_foreign")
+
+  @@id([permission_id, model_id, model_type])
+  @@index([model_id, model_type], map: "model_has_permissions_model_id_model_type_index")
+}
+
+model model_has_roles {
+  role_id    BigInt
+  model_type String @db.VarChar(255)
+  model_id   BigInt
+  roles      roles  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "model_has_roles_role_id_foreign")
+
+  @@id([role_id, model_id, model_type])
+  @@index([model_id, model_type], map: "model_has_roles_model_id_model_type_index")
+}
+
+model oauth_access_tokens {
+  id         String    @id @db.VarChar(100)
+  user_id    BigInt?
+  client_id  BigInt
+  name       String?   @db.VarChar(255)
+  scopes     String?
+  revoked    Boolean
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  expires_at DateTime? @db.Timestamp(0)
+
+  @@index([user_id], map: "oauth_access_tokens_user_id_index")
+}
+
+model oauth_auth_codes {
+  id         String    @id @db.VarChar(100)
+  user_id    BigInt
+  client_id  BigInt
+  scopes     String?
+  revoked    Boolean
+  expires_at DateTime? @db.Timestamp(0)
+
+  @@index([user_id], map: "oauth_auth_codes_user_id_index")
+}
+
+model oauth_clients {
+  id                     BigInt    @id @default(autoincrement())
+  user_id                BigInt?
+  name                   String    @db.VarChar(255)
+  secret                 String?   @db.VarChar(100)
+  provider               String?   @db.VarChar(255)
+  redirect               String
+  personal_access_client Boolean
+  password_client        Boolean
+  revoked                Boolean
+  created_at             DateTime? @db.Timestamp(0)
+  updated_at             DateTime? @db.Timestamp(0)
+
+  @@index([user_id], map: "oauth_clients_user_id_index")
+}
+
+model oauth_personal_access_clients {
+  id         BigInt    @id @default(autoincrement())
+  client_id  BigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model oauth_refresh_tokens {
+  id              String    @id @db.VarChar(100)
+  access_token_id String    @db.VarChar(100)
+  revoked         Boolean
+  expires_at      DateTime? @db.Timestamp(0)
+
+  @@index([access_token_id], map: "oauth_refresh_tokens_access_token_id_index")
+}
+
+model offer_categories {
+  id          BigInt      @id @default(autoincrement())
+  title       String      @unique(map: "offer_categories_title_unique") @db.VarChar(255)
+  icon        String?     @db.VarChar(255)
+  description String?
+  status      Int         @default(1) @db.SmallInt
+  created_at  DateTime?   @db.Timestamp(0)
+  updated_at  DateTime?   @db.Timestamp(0)
+  offers      offers[]
+  providers   providers[]
+}
+
+model offers {
+  id                       BigInt                     @id @default(autoincrement())
+  category_id              BigInt
+  title                    String                     @db.VarChar(255)
+  icon                     String?                    @db.VarChar(255)
+  description              String?
+  price                    Decimal?                   @db.Decimal(10, 0)
+  created_at               DateTime?                  @db.Timestamp(0)
+  updated_at               DateTime?                  @db.Timestamp(0)
+  offer_categories         offer_categories           @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "offers_category_id_foreign")
+  provider_offers          provider_offers[]
+  subscription_plan_offers subscription_plan_offers[]
+  subscription_usages      subscription_usages[]
+}
+
+model orders {
+  id                     BigInt                  @id @default(autoincrement())
+  buyer_type             String                  @db.VarChar(255)
+  buyer_id               BigInt
+  purchasable_type       String                  @db.VarChar(255)
+  purchasable_id         BigInt
+  amount                 Decimal                 @db.Decimal(10, 2)
+  status                 Int                     @db.SmallInt
+  created_at             DateTime?               @db.Timestamp(0)
+  updated_at             DateTime?               @db.Timestamp(0)
+  tracking_code          String?                 @db.VarChar
+  customer_subscriptions customer_subscriptions?
+  payments               payments[]
+
+  @@index([buyer_type, buyer_id], map: "orders_buyer_type_buyer_id_index")
+  @@index([purchasable_type, purchasable_id], map: "orders_purchasable_type_purchasable_id_index")
+}
+
+model otps {
+  id                   BigInt    @id @default(autoincrement())
+  code                 String    @db.VarChar(255)
+  channel              Int       @default(1) @db.SmallInt
+  reason               String    @db.VarChar(255)
+  expires_at           DateTime  @db.Timestamp(0)
+  authenticatable_type String    @db.VarChar(255)
+  authenticatable_id   BigInt
+  is_used              Boolean   @default(false)
+  created_at           DateTime? @db.Timestamp(0)
+  updated_at           DateTime? @db.Timestamp(0)
+
+  @@index([authenticatable_type, authenticatable_id], map: "otps_authenticatable_type_authenticatable_id_index")
+}
+
+model payments {
+  id              BigInt    @id @default(autoincrement())
+  order_id        BigInt
+  transaction_id  String    @unique(map: "payments_transaction_id_unique") @db.VarChar(255)
+  res_num         String    @unique(map: "payments_res_num_unique") @db.VarChar(255)
+  status          Int       @default(0) @db.SmallInt
+  amount          Decimal   @db.Decimal(10, 2)
+  payment_method  String?   @db.VarChar(255)
+  payment_gateway String?   @db.VarChar(255)
+  paid_at         DateTime? @db.Timestamp(0)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  receipt_photo   String?   @db.VarChar
+  orders          orders    @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payments_order_id_foreign")
+}
+
+model permissions {
+  id                    BigInt                  @id @default(autoincrement())
+  name                  String                  @db.VarChar(255)
+  guard_name            String                  @db.VarChar(255)
+  created_at            DateTime?               @db.Timestamp(0)
+  updated_at            DateTime?               @db.Timestamp(0)
+  model_has_permissions model_has_permissions[]
+  role_has_permissions  role_has_permissions[]
+
+  @@unique([name, guard_name], map: "permissions_name_guard_name_unique")
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement())
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt
+  name           String    @db.VarChar(255)
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model provider_agents {
+  id                  BigInt                @id @default(autoincrement())
+  provider_id         BigInt
+  user_id             BigInt
+  role                Int                   @default(20) @db.SmallInt
+  created_at          DateTime?             @db.Timestamp(0)
+  updated_at          DateTime?             @db.Timestamp(0)
+  providers           providers             @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_agents_provider_id_foreign")
+  admins              admins                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_agents_user_id_foreign")
+  subscription_usages subscription_usages[]
+}
+
+model provider_offers {
+  id          BigInt    @id @default(autoincrement())
+  provider_id BigInt
+  offer_id    BigInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  offers      offers    @relation(fields: [offer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_offers_offer_id_foreign")
+  providers   providers @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_offers_provider_id_foreign")
+}
+
+model providers {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @unique(map: "providers_name_unique") @db.VarChar(255)
+  description         String?
+  category_id         BigInt
+  address             String
+  phone_number        Json                  @db.Json
+  main_image          String                @db.VarChar(255)
+  slider_images       Json                  @db.Json
+  latitude            Decimal               @db.Decimal(10, 7)
+  longitude           Decimal               @db.Decimal(10, 7)
+  is_verified         Boolean               @default(false)
+  status              Int                   @default(1) @db.SmallInt
+  created_at          DateTime?             @db.Timestamp(0)
+  updated_at          DateTime?             @db.Timestamp(0)
+  provider_agents     provider_agents[]
+  provider_menu       provider_menu?
+  provider_offers     provider_offers[]
+  offer_categories    offer_categories      @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "providers_category_id_foreign")
+  subscription_usages subscription_usages[]
+}
+
+model provider_menu {
+  id                       BigInt                     @id @default(autoincrement())
+  provider_id              BigInt                     @unique(map: "provider_menu_provider_id_unique")
+  title                    String?                    @db.VarChar(255)
+  description              String?
+  created_at               DateTime?                  @db.Timestamp(0)
+  updated_at               DateTime?                  @db.Timestamp(0)
+  providers                providers                  @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_menu_provider_id_foreign")
+  provider_menu_items      provider_menu_items[]      @relation(map: "provider_menu_items_menu_id_foreign")
+  provider_menu_categories provider_menu_categories[] @relation(map: "provider_menu_categories_menu_id_foreign")
+}
+
+model provider_menu_items {
+  id                       BigInt                   @id @default(autoincrement())
+  menu_id                  BigInt
+  title                    String                   @db.VarChar(255)
+  description              String?
+  created_at               DateTime?                @db.Timestamp(0)
+  updated_at               DateTime?                @db.Timestamp(0)
+  category_id              BigInt
+  price                    Decimal                  @db.Decimal(10, 0)
+  provider_menu_categories provider_menu_categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_menu_items_category_id_foreign")
+  provider_menu            provider_menu            @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_menu_items_menu_id_foreign")
+}
+
+model provider_menu_categories {
+  id                  BigInt                @id @default(autoincrement())
+  menu_id             BigInt
+  title               String                @db.VarChar(255)
+  created_at          DateTime?             @db.Timestamp(0)
+  updated_at          DateTime?             @db.Timestamp(0)
+  provider_menu       provider_menu         @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "provider_menu_categories_menu_id_foreign")
+  provider_menu_items provider_menu_items[] @relation(map: "provider_menu_items_category_id_foreign")
+}
+
+model role_has_permissions {
+  permission_id BigInt
+  role_id       BigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "role_has_permissions_permission_id_foreign")
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "role_has_permissions_role_id_foreign")
+
+  @@id([permission_id, role_id])
+}
+
+model roles {
+  id                   BigInt                 @id @default(autoincrement())
+  name                 String                 @db.VarChar(255)
+  guard_name           String                 @db.VarChar(255)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  model_has_roles      model_has_roles[]
+  role_has_permissions role_has_permissions[]
+
+  @@unique([name, guard_name], map: "roles_name_guard_name_unique")
+}
+
+model subscription_plan_offers {
+  id                   BigInt             @id @default(autoincrement())
+  subscription_plan_id BigInt
+  offer_id             BigInt
+  discount_percentage  Int
+  created_at           DateTime?          @db.Timestamp(0)
+  updated_at           DateTime?          @db.Timestamp(0)
+  offers               offers             @relation(fields: [offer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_plan_offers_offer_id_foreign")
+  subscription_plans   subscription_plans @relation(fields: [subscription_plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_plan_offers_subscription_plan_id_foreign")
+
+  @@unique([subscription_plan_id, offer_id], map: "subscription_plan_offer_unique")
+}
+
+model subscription_plans {
+  id                       BigInt                     @id @default(autoincrement())
+  title                    String                     @unique(map: "subscription_plans_title_unique") @db.VarChar(255)
+  duration                 Int
+  price                    Decimal                    @db.Decimal(10, 0)
+  status                   Int                        @default(1) @db.SmallInt
+  description              String?
+  created_at               DateTime?                  @db.Timestamp(0)
+  updated_at               DateTime?                  @db.Timestamp(0)
+  customer_subscriptions   customer_subscriptions[]
+  subscription_plan_offers subscription_plan_offers[]
+}
+
+model subscription_usages {
+  id                       BigInt                 @id @default(autoincrement())
+  provider_agent_id        BigInt
+  customer_id              BigInt
+  customer_subscription_id BigInt
+  provider_id              BigInt
+  offer_id                 BigInt
+  total_amount             String                 @db.VarChar(255)
+  status                   String                 @default("0") @db.VarChar(255)
+  created_at               DateTime?              @db.Timestamp(0)
+  updated_at               DateTime?              @db.Timestamp(0)
+  customers                customers              @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_usages_customer_id_foreign")
+  customer_subscriptions   customer_subscriptions @relation(fields: [customer_subscription_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_usages_customer_subscription_id_foreign")
+  offers                   offers                 @relation(fields: [offer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_usages_offer_id_foreign")
+  provider_agents          provider_agents        @relation(fields: [provider_agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_usages_provider_agent_id_foreign")
+  providers                providers              @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "subscription_usages_provider_id_foreign")
+}
